@@ -1,5 +1,3 @@
-#include "linalg.h"
-
 #include "common.h"
 
 /**

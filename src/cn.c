@@ -1,7 +1,6 @@
 #include "cn.h"
 
 #include "common.h"
-#include "linalg.h"
 
 /**
  * choose_init_pts() - samples random points in a box
