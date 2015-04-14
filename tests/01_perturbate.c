@@ -26,7 +26,5 @@ int main(void)
 
 	free(ys);
 
-	printf("perturbate [OK]\n");
-
 	return 0;
 }
