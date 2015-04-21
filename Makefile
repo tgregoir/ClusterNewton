@@ -14,7 +14,7 @@ CFLAGS  := -g -std=c99 -Wall -O2 $(INCLUDE)
 LDFLAGS := -g
 
 # Additional libraries
-LIBS :=
+LIBS := -lblas -llapacke
 ########################################################################
 
 .SUFFIXES:

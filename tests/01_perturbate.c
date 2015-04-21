@@ -1,29 +1,27 @@
 #include "cn.h"
+#include "tsttools.h"
 
-/**
- * perturbate_test() - a simple test for perturbate()
- *
- * Creates a vector, perturbates it and checks that it satisfies the bound
- * given in the documentation of perturbate().
- */
 int main(void)
 {
-	uint l = 10;
-	float yv = 5.;
-	float eta = 0.1;
+	init_prg();
 
-	float *ys = create_vector(l);
+	uint l = random_dim();
+	uint n = random_dim();
+	float *ys = random_vector(n);
+	float eta = 0.001;
 
-	for (uint i = 1; i <= l; i++) {
-		V_IDX(ys, i) = (float)rand();
+	float *Ys = random_matrix(n, l);
+
+	perturbate(l, n, ys, eta, Ys);
+
+	for (uint j = 1; j <= l; j++) {
+		for (uint i = 1; i <= n; i++) {
+			assert(abs((M_IDX(Ys, n, i, j) - V_IDX(ys, i))
+				   / V_IDX(ys, i)) <= eta);
+		}
 	}
 
-	perturbate(l, yv, eta, ys);
-
-	for (uint i = 1; i <= l; i++) {
-		assert(abs((V_IDX(ys, i) - yv) / yv) <= eta);
-	}
-
+	free(Ys);
 	free(ys);
 
 	return 0;
