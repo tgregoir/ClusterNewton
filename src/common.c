@@ -41,12 +41,12 @@ void print_vector_(uint n, float *v, const char *str)
 
 void print_matrix_(uint m, uint n, float *A, const char *str)
 {
-	printf("%s = [ ", str);
+	printf("%s =\n[ ", str);
 	for (uint i = 1; i <= m; i++) {
 		for (uint j = 1; j <= n; j++) {
 			printf("%f ", M_IDX(A, m, i, j));
 		}
-		printf("\n");
+		if (i < m) printf("\n  ");
 	}
 	printf("]\n");
 }
