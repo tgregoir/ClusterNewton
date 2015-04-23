@@ -29,3 +29,79 @@ float *create_matrix(uint n, uint m)
 	assert(M);
 	return M;
 }
+
+void print_vector_(uint n, float *v, const char *str)
+{
+	printf("%s = [ ", str);
+	for (uint i = 1; i <= n; i++) {
+		printf("%f ", V_IDX(v, i));
+	}
+	printf("]\n");
+}
+
+void print_matrix_(uint m, uint n, float *A, const char *str)
+{
+	printf("%s = [ ", str);
+	for (uint i = 1; i <= m; i++) {
+		for (uint j = 1; j <= n; j++) {
+			printf("%f ", M_IDX(A, m, i, j));
+		}
+		printf("\n");
+	}
+	printf("]\n");
+}
+
+/**
+ * m_add() - add a matrix to another one
+ * @m:         Row dimension.
+ * @l:         Column dimension.
+ * @A:         Target.
+ * @B:         Matrix to be added to A.
+ *
+ * Performs A <- A + B.
+ */
+void m_add(uint m, uint l, float *A, float *B)
+{
+	for (uint j = 1; j <= l; j++) {
+		for (uint i = 1; i <= m; i++) {
+			M_IDX(A, m, i, j) += M_IDX(B, m, i, j);
+		}
+	}
+}
+
+/**
+ * m_scale_cols() - right multiplication with a diagonal matrix
+ * @m:                Row dimension of the matrix A.
+ * @n:                Column dimension of the matrix A.
+ * @A:                A matrix
+ * @sv:               A length-n vector.
+ *
+ * Performs A <- A diag(sv).
+ */
+void m_scale_cols(uint m, uint n, float *A, float *sv)
+{
+	for (uint j = 1; j <= n; j++) {
+		float s = V_IDX(sv, j);
+		for (uint i = 1; i <= m; i++) {
+			M_IDX(A, m, i, j) *= s;
+		}
+	}
+}
+
+/**
+ * m_scale_rows_inv() - left product with the inverse of a diagonal matrix
+ * @m:                Row dimension of the matrix A.
+ * @n:                Column dimension of the matrix A.
+ * @A:                A matrix
+ * @sv:               A length-m vector.
+ *
+ * Performs A <- diag(sv)^(-1) A.
+ */
+void m_scale_rows_inv(uint m, uint n, float *A, float *sv)
+{
+	for (uint j = 1; j <= n; j++) {
+		for (uint i = 1; i <= m; i++) {
+			M_IDX(A, m, i, j) /= V_IDX(sv, i);
+		}
+	}
+}

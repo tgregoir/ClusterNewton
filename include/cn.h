@@ -8,6 +8,7 @@ void perturbate(uint, uint, float *, float, float *);
 void multi_eval(uint, uint, void (*)(float *, float *),
                 uint, float *, float*);
 void least_squares(uint, uint, float *, uint, float *, float *);
+void minimum_norm(uint, uint, float *, uint, float *, float *);
 
 void cluster_newton(uint, uint, void (*)(float *, float *), float *,
                     float *, float *, uint, float, uint);

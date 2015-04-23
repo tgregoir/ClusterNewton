@@ -4,20 +4,20 @@
 
 int main(void)
 {
-	uint m = 2;
-	uint n = 1;
+	uint m = 1;
+	uint n = 2;
 	uint l = 1;
 	float *A = create_matrix(m, n);
-	float *B = create_matrix(m, l);
+	float *B = create_matrix(l, n);
 
 	M_IDX(A, m, 1, 1) = 2;
-	M_IDX(A, m, 2, 1) = 3;
-	M_IDX(B, m, 1, 1) = 6;
-	M_IDX(B, m, 2, 1) = 6;
+	M_IDX(A, m, 1, 2) = 3;
+	M_IDX(B, l, 1, 1) = 6;
+	M_IDX(B, l, 1, 2) = 6;
 
-	float *X = create_matrix(n, l);
+	float *X = create_matrix(l, m);
 	least_squares(m, n, A, l, B, X);
-	assert(fabs(M_IDX(X, n, 1, 1) - 30. / 13. < 0.00001f));
+	assert(fabs(M_IDX(X, l, 1, 1) - 30. / 13. < 0.00001f));
 
 	free(X);
 	free(B);

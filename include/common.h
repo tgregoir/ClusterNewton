@@ -43,7 +43,29 @@ typedef unsigned int uint;
  */
 #define M_COL(M, n, j) (&M_IDX(M, n, 1, j))
 
-float *create_vector(uint n);
-float *create_matrix(uint n, uint m);
+float *create_vector(uint);
+float *create_matrix(uint, uint);
+
+void print_vector_(uint, float *, const char *);
+void print_matrix_(uint, uint, float *, const char *);
+
+/**
+ * print_vector() - prints a vector
+ * @n:                Its size.
+ * @v:                The vector.
+ */
+#define print_vector(n, v) do { print_vector_(n, v, #v); } while (0)
+
+/**
+ * print_matrix() - prints a matrix
+ * @m:                Its row dimension.
+ * @n:                Its column dimension.
+ * @A:                The matrix.
+ */
+#define print_matrix(m, n, A) do { print_matrix_(m, n, A, #A); } while (0)
+
+void m_add(uint, uint, float *, float *);
+void m_scale_cols(uint, uint, float *, float *);
+void m_scale_rows_inv(uint, uint, float *, float *);
 
 #endif /* COMMON_H */
