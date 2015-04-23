@@ -80,6 +80,14 @@ void multi_eval(uint m, uint n, void (*f)(float *, float *),
 
 /**
  * least_squares() - solve an overdetermined linear system
+ * @m:                 Row dimension of A.
+ * @n:                 Column dimension of A.
+ * @A:                 An m-by-n matrix.
+ * @l:                 Column dimension of B.
+ * @B:                 An n-by-l matrix.
+ * @X:                 An n-by-m matrix in which to store the result.
+ *
+ * Solves XA = B in the sense of least squares.
  */
 void least_squares(uint m, uint n, float *A, uint l, float *B, float *X)
 {
@@ -109,6 +117,14 @@ void least_squares(uint m, uint n, float *A, uint l, float *B, float *X)
 
 /**
  * minimum_norm() - solve an underdetermined linear system
+ * @m:                Number of equations.
+ * @n:                Number of unknowns.
+ * @A:                LHS, an m-by-n matrix.
+ * @l:                Column dimension of the RHS.
+ * @B:                RHS, an m-by-l matrix.
+ * @X:                An n-by-l matrix in which the result is stored.
+ *
+ * Finds the solution of AX = B of minimum Frobenius norm. B is modified.
  */
 void minimum_norm(uint m, uint n, float *A, uint l, float *B, float *X)
 {
