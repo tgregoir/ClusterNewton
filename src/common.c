@@ -46,7 +46,9 @@ void print_matrix_(uint m, uint n, float *A, const char *str)
 		for (uint j = 1; j <= n; j++) {
 			printf("%f ", M_IDX(A, m, i, j));
 		}
-		if (i < m) printf("\n  ");
+		if (i < m) {
+			printf("\n  ");
+		}
 	}
 	printf("]\n");
 }

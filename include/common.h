@@ -16,7 +16,7 @@ typedef unsigned int uint;
  *
  * Return: v(i).
  */
-#define V_IDX(v, i) (v[i - 1])
+#define V_IDX(v, i) ((v)[(i) - 1])
 
 /**
  * M_IDX() - indexing function for matrices
@@ -29,19 +29,19 @@ typedef unsigned int uint;
  *
  * Return: A(i,j).
  */
-#define M_IDX(A, n, i, j) (A[(j - 1) * (n) + i - 1])
+#define M_IDX(A, n, i, j) ((A)[(j - 1) * (n) + (i) - 1])
 
 /**
  * M_COL() - get a pointer to a column in a matrix
- * @M:         Matrix, a float *.
- * @n:         Row dimension of M.
+ * @A:         Matrix, a float *.
+ * @n:         Row dimension of A.
  * @j:         Column index.
  *
  * M is assumed to be written in column-major order. Bounds are NOT checked.
  *
  * Returns: a pointer to A(., j).
  */
-#define M_COL(M, n, j) (&M_IDX(M, n, 1, j))
+#define M_COL(A, n, j) (&(M_IDX(A, n, 1, j)))
 
 float *create_vector(uint);
 float *create_matrix(uint, uint);

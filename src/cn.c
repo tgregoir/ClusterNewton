@@ -21,18 +21,15 @@
  */
 void random_pts_in_box(uint m, uint l, float *xh, float *v, float *X)
 {
-	assert (m != 0);
-	assert (l != 0);
-
-	for (uint i = 1; i <= l; i++) {
-		for (uint k = 1; k <= m; k++) {
+	for (uint j = 1; j <= l; j++) {
+		for (uint i = 1; i <= m; i++) {
 			float r = 2. * (float)rand() / (float)RAND_MAX - 1.;
-			M_IDX(X, m + l, k, i) = V_IDX(xh, k) *
-			                        (1. + V_IDX(v, k) * r);
+			M_IDX(X, m + l, i, j) = V_IDX(xh, i) *
+			                        (1. + V_IDX(v, i) * r);
 		}
 
-		for (uint k = 1; k <= l; k++) {
-			M_IDX(X, m + l, m + k, i) = (k == i ? 1. : 0.);
+		for (uint i = 1; i <= l; i++) {
+			M_IDX(X, m + l, m + i, j) = (i == j ? 1. : 0.);
 		}
 	}
 }
@@ -79,17 +76,57 @@ void multi_eval(uint m, uint n, void (*f)(float *, float *),
 }
 
 /**
- * least_squares() - solve an overdetermined linear system
+ * pinv_ls() - solve an overdetermined linear system
+ * @m:                 Row dimension of A.
+ * @n:                 Column dimension of A, n <= m.
+ * @A:                 An m-by-n matrix.
+ * @l:                 Column dimension of B.
+ * @B:                 An l-by-n matrix.
+ * @X:                 An l-by-m matrix in which to store the result.
+ *
+ * Computes the least-squares solution of an overdetermined linear system,
+ * by computing a Moore-Penrose pseudoinverse.
+ */
+void pinv_ls(uint m, uint n, float *A, uint l, float *B, float *X)
+{
+	assert (n <= m);
+
+	float *invA = create_matrix(m, m);
+
+	/* set up an identity function */
+	for (uint i = 1; i <= m; i++) {
+		for (uint j = 1; j <= m; j++) {
+			M_IDX(invA, m, i, j) = (i == j ? 1.0f : 0.0f);
+		}
+	}
+
+	/* compute the pseudoinverse */
+	float *S = create_vector(m);
+	int rank;
+	LAPACKE_sgelss(LAPACK_COL_MAJOR, m, n, m, A, m, invA, m, S,
+	               -1.0f, &rank);
+
+	/* multiply the RHS by the pseudoinverse */
+	cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
+	            l, m, n, 1.0f, B, l, invA, m, 0.0f, X, l);
+
+	free(S);
+	free(invA);
+}
+
+/**
+ * normal_ls() - solve an overdetermined linear system
  * @m:                 Row dimension of A.
  * @n:                 Column dimension of A.
  * @A:                 An m-by-n matrix.
  * @l:                 Column dimension of B.
- * @B:                 An n-by-l matrix.
- * @X:                 An n-by-m matrix in which to store the result.
+ * @B:                 An l-by-n matrix.
+ * @X:                 An l-by-m matrix in which to store the result.
  *
- * Solves XA = B in the sense of least squares.
+ * Computes the least-squares solution of an overdetermined linear system,
+ * by solving the normal equations.
  */
-void least_squares(uint m, uint n, float *A, uint l, float *B, float *X)
+void normal_ls(uint m, uint n, float *A, uint l, float *B, float *X)
 {
 	float *C = create_matrix(m, m);
 	float *D = X;
@@ -106,10 +143,11 @@ void least_squares(uint m, uint n, float *A, uint l, float *B, float *X)
 	cblas_sgemm(CblasColMajor, CblasNoTrans, CblasTrans,
 	            l, m, n, 1.0f, B, l, A, m, 0.0f, D, l);
 	//print_matrix(l, m, D);
-	/* Solve XC=D for X. This overrides D, hence X. */
+	/* solve XC=D for X
+	 * this overrides D, hence X */
 	int *ipiv = (int*)malloc(sizeof(int) * m);
 	assert(ipiv);
-	LAPACKE_ssysv(LAPACK_ROW_MAJOR, 'u', m, l, C, m, ipiv, D, l);
+	LAPACKE_ssysv(LAPACK_ROW_MAJOR, 'u', m, l, C, m, ipiv, D, m);
 
 	free(ipiv);
 	free(C);
@@ -134,26 +172,26 @@ void minimum_norm(uint m, uint n, float *A, uint l, float *B, float *X)
 	cblas_ssyrk(CblasColMajor, CblasUpper, CblasNoTrans,
 	            m, n, 1.0f, A, m, 0.0f, C, m);
 	//print_matrix(m, m, C);
-	/* Solve CX = B */
+	/* solve CX = B */
 	int *ipiv = (int*)malloc(sizeof(int) * m);
 	assert(ipiv);
 	LAPACKE_ssysv(LAPACK_COL_MAJOR, 'u', m, l, C, m, ipiv, B, m);
 	//print_matrix(m, l, B);
 
-	/* Multiply the result by A' on the left */
+	/* multiply the result by A' on the left */
 	cblas_sgemm(CblasColMajor, CblasTrans, CblasNoTrans, n, l, m, 1.0f, A,
 	            m, B, m, 0.0f, X, n);
 
-	// clean up
+	/* clean up */
 	free(ipiv);
 	free(C);
 }
 
 void cluster_newton(uint m, uint n, void (*f)(float *, float *), float *ys,
                     float *xh, float *v,
-                    uint l, float eta, uint K)
+                    uint l, float eta, uint K, float *res)
 {
-	// safety checks
+	/* safety checks */
 	assert(m > n);
 	assert(n > 0);
 	assert(l > 0);
@@ -166,8 +204,8 @@ void cluster_newton(uint m, uint n, void (*f)(float *, float *), float *ys,
 
 	float *Y = create_matrix(n, l);
 
-	/* A and Y0 are stored in the same matrix. This comes handy when one
-	 * has to solve the overdetermined linear system in 2.2. */
+	/* A and Y0 are stored in the same matrix
+	 * handy when solving the overdetermined linear system in 2.2 */
 	float *A_Y0 = create_matrix(n, m + l);
 	float *A = A_Y0;
 	float *Y0 = M_COL(A_Y0, n, m + 1);
@@ -176,10 +214,11 @@ void cluster_newton(uint m, uint n, void (*f)(float *, float *), float *ys,
 	for (uint k = 0; k <= K; k++) {
 		/* 2.1 */ multi_eval(m, n, f, l, X, Y);
 
-		/* 2.2 */ least_squares(m + l, l, X, n, Y, A_Y0);
+		/* 2.2 */ pinv_ls(m + l, l, X, n, Y, A_Y0);
+		/* 2.2 */ //least_squares(m + l, l, X, n, Y, A_Y0);
 
 		/* 2.3 */
-		// Y0 <-- Ys - AX - Y0
+		/* Y0 <-- Ys - AX - Y0 */
 		cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
 			    n, l, m, -1.0f, A, n, X, m + l, -1.0f, Y0, n);
 		m_add(n, l, Y0, Ys);
@@ -190,7 +229,8 @@ void cluster_newton(uint m, uint n, void (*f)(float *, float *), float *ys,
 
 		/* 2.4 */
 		for (uint j = 1; j <= l; j++) {
-			while (0) { // FIXME
+			/* FIXME */
+			while (0) {
 				for (uint i = 1; i <= m; i++) {
 					M_IDX(S, m, i, j) /= 2.0f;
 				}
@@ -199,7 +239,13 @@ void cluster_newton(uint m, uint n, void (*f)(float *, float *), float *ys,
 		m_add(m, l, X, S);
 	}
 
-	// cleaning up
+	for (uint j = 1; j <= l; j++) {
+		for (uint i = 1; i <= m; i++) {
+			M_IDX(res, m, i, j) = M_IDX(X, m + l, i, j);
+		}
+	}
+
+	/* cleaning up */
 	free(S);
 	free(A_Y0);
 	free(Y);

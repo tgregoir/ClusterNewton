@@ -16,7 +16,7 @@ int main(void)
 	M_IDX(B, l, 1, 2) = 6;
 
 	float *X = create_matrix(l, m);
-	least_squares(m, n, A, l, B, X);
+	normal_ls(m, n, A, l, B, X);
 	assert(fabs(M_IDX(X, l, 1, 1) - 30. / 13. < 0.00001f));
 
 	free(X);
