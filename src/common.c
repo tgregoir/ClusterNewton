@@ -34,20 +34,20 @@ void print_vector_(uint n, float *v, const char *str)
 {
 	printf("%s = [ ", str);
 	for (uint i = 1; i <= n; i++) {
-		printf("%f ", V_IDX(v, i));
+		printf("%f; ", V_IDX(v, i));
 	}
 	printf("]\n");
 }
 
 void print_matrix_(uint m, uint n, float *A, const char *str)
 {
-	printf("%s =\n[ ", str);
+	printf("%s = ...\n [ ", str);
 	for (uint i = 1; i <= m; i++) {
 		for (uint j = 1; j <= n; j++) {
 			printf("%f ", M_IDX(A, m, i, j));
 		}
 		if (i < m) {
-			printf("\n  ");
+			printf(";\n  ");
 		}
 	}
 	printf("]\n");
@@ -57,16 +57,18 @@ void print_matrix_(uint m, uint n, float *A, const char *str)
  * m_add() - add a matrix to another one
  * @m:         Row dimension.
  * @l:         Column dimension.
+ * @ldA:       Leading dimension of matrix A.
  * @A:         Target.
+ * @ldB:       Leading dimension of matrix B.
  * @B:         Matrix to be added to A.
  *
  * Performs A <- A + B.
  */
-void m_add(uint m, uint l, float *A, float *B)
+void m_add(uint m, uint l, uint ldA, float *A, uint ldB, float *B)
 {
 	for (uint j = 1; j <= l; j++) {
 		for (uint i = 1; i <= m; i++) {
-			M_IDX(A, m, i, j) += M_IDX(B, m, i, j);
+			M_IDX(A, ldA, i, j) += M_IDX(B, ldB, i, j);
 		}
 	}
 }

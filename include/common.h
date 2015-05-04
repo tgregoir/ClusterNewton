@@ -64,7 +64,7 @@ void print_matrix_(uint, uint, float *, const char *);
  */
 #define print_matrix(m, n, A) do { print_matrix_(m, n, A, #A); } while (0)
 
-void m_add(uint, uint, float *, float *);
+void m_add(uint, uint, uint, float *, uint, float *);
 void m_scale_cols(uint, uint, float *, float *);
 void m_scale_rows_inv(uint, uint, float *, float *);
 

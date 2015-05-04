@@ -10,7 +10,7 @@ TESTS    := tests
 LIBDIRS  :=
 
 # Compilation flags
-CFLAGS  := -g -std=c99 -Wall -O2 $(INCLUDE)
+CFLAGS  := -g -std=c99 -Wall $(INCLUDE)
 LDFLAGS := -g
 
 # Additional libraries

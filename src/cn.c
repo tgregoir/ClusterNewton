@@ -91,6 +91,14 @@ void pinv_ls(uint m, uint n, float *A, uint l, float *B, float *X)
 {
 	assert (n <= m);
 
+	/* create a copy of A */
+	float *cA = create_matrix(m, n);
+	for (uint i = 1; i <= m; i++) {
+		for (uint j = 1; j <= n; j++) {
+			M_IDX(cA, m, i, j) = M_IDX(A, m, i, j);
+		}
+	}
+
 	float *invA = create_matrix(m, m);
 
 	/* set up an identity function */
@@ -103,7 +111,7 @@ void pinv_ls(uint m, uint n, float *A, uint l, float *B, float *X)
 	/* compute the pseudoinverse */
 	float *S = create_vector(m);
 	int rank;
-	LAPACKE_sgelss(LAPACK_COL_MAJOR, m, n, m, A, m, invA, m, S,
+	LAPACKE_sgelss(LAPACK_COL_MAJOR, m, n, m, cA, m, invA, m, S,
 	               -1.0f, &rank);
 
 	/* multiply the RHS by the pseudoinverse */
@@ -112,6 +120,7 @@ void pinv_ls(uint m, uint n, float *A, uint l, float *B, float *X)
 
 	free(S);
 	free(invA);
+	free(cA);
 }
 
 /**
@@ -221,24 +230,27 @@ void cluster_newton(uint m, uint n, void (*f)(float *, float *), float *ys,
 		/* Y0 <-- Ys - AX - Y0 */
 		cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
 			    n, l, m, -1.0f, A, n, X, m + l, -1.0f, Y0, n);
-		m_add(n, l, Y0, Ys);
+		m_add(n, l, n, Y0, n, Ys);
 
-		m_scale_cols(n, m, A, xh);
+		//m_scale_cols(n, m, A, xh);
 		minimum_norm(n, m, A, l, Y0, S);
-		m_scale_rows_inv(n, m, S, xh);
+		//m_scale_rows_inv(m, l, S, xh);
 
 		/* 2.4 */
-		for (uint j = 1; j <= l; j++) {
+		//for (uint j = 1; j <= l; j++) {
 			/* FIXME */
-			while (0) {
-				for (uint i = 1; i <= m; i++) {
-					M_IDX(S, m, i, j) /= 2.0f;
-				}
-			}
-		}
-		m_add(m, l, X, S);
+		//	while (
+//sqrt(pow(M_IDX(X, m, 1, j) + M_IDX(S, m, 1, j), 2)
+//   + pow(M_IDX(X, m, 2, j) + M_IDX(S, m, 2, j), 2)) >= 15) {
+//				for (uint i = 1; i <= m; i++) {
+//					M_IDX(S, m, i, j) /= 2.0f;
+//				}
+//			}
+//		}
+		m_add(m, l, m + l, X, m, S);
 	}
 
+	/* copy the result */
 	for (uint j = 1; j <= l; j++) {
 		for (uint i = 1; i <= m; i++) {
 			M_IDX(res, m, i, j) = M_IDX(X, m + l, i, j);

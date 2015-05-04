@@ -16,12 +16,12 @@ int main(void)
 
 	uint m = 2;
 	uint n = 1;
-	uint l = 3;
+	uint l = 5;
 	float ys[] = { 100. };
 	float xh[] = { 2.5, 2.5 };
 	float v[] = { 1., 1. };
 	float eta = 0.1;
-	uint K = 5;
+	uint K = 20;
 
 	float *res = create_matrix(m, l);
 	printf("m=%u, n=%u, l=%u\n", m, n, l);
