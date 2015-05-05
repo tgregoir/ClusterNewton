@@ -101,7 +101,7 @@ void multi_eval(uint m, uint n, void (*f)(float *, float *),
  * @X:                 An l-by-m matrix in which to store the result.
  *
  * Computes the least-squares solution of an overdetermined linear system,
- * by computing a Moore-Penrose pseudoinverse.
+ * by computing a Moore-Penrose pseudoinverse. Solves XA = B for X.
  */
 void pinv_ls(uint m, uint n, float *A, uint l, float *B, float *X)
 {
@@ -149,25 +149,27 @@ void pinv_ls(uint m, uint n, float *A, uint l, float *B, float *X)
  * @X:                 An l-by-m matrix in which to store the result.
  *
  * Computes the least-squares solution of an overdetermined linear system,
- * by solving the normal equations.
+ * by solving the normal equations. Solves XA = B for X.
  */
 void normal_ls(uint m, uint n, float *A, uint l, float *B, float *X)
 {
 	float *C = create_matrix(m, m);
 	float *D = X;
 
-	//print_matrix(m, n, A);
-	//print_matrix(l, n, B);
+	/*
+	 * Dimensions:
+	 *   - A is m by n.
+	 *   - B is l by n.
+	 *   - C is m by m.
+	 *   - D is l by m.
+	 */
 
-	//printf("m=%u n=%u\n", m, n);
 	/* C = AA' */
 	cblas_ssyrk(CblasColMajor, CblasLower, CblasNoTrans,
 	            m, n, 1.0f, A, m, 0.0f, C, m);
-	//print_matrix(m, m, C);
 	/* D = BA' */
 	cblas_sgemm(CblasColMajor, CblasNoTrans, CblasTrans,
 	            l, m, n, 1.0f, B, l, A, m, 0.0f, D, l);
-	//print_matrix(l, m, D);
 	/* solve XC=D for X
 	 * this overrides D, hence X */
 	int *ipiv = (int*)malloc(sizeof(int) * m);
@@ -193,28 +195,48 @@ void minimum_norm(uint m, uint n, float *A, uint l, float *B, float *X)
 {
 	float *C = create_matrix(m, m);
 
+	/*
+	 * Dimensions
+	 *   - A is m by n.
+	 *   - B is m by l.
+	 *   - C is m by m.
+	 */
+
 	/* C = AA' */
 	cblas_ssyrk(CblasColMajor, CblasUpper, CblasNoTrans,
 	            m, n, 1.0f, A, m, 0.0f, C, m);
-	//print_matrix(m, m, C);
 	/* solve CX = B */
 	int *ipiv = (int*)malloc(sizeof(int) * m);
 	assert(ipiv);
 	LAPACKE_ssysv(LAPACK_COL_MAJOR, 'u', m, l, C, m, ipiv, B, m);
-	//print_matrix(m, l, B);
 
 	/* multiply the result by A' on the left */
-	cblas_sgemm(CblasColMajor, CblasTrans, CblasNoTrans, n, l, m, 1.0f, A,
-	            m, B, m, 0.0f, X, n);
+	cblas_sgemm(CblasColMajor, CblasTrans, CblasNoTrans,
+	            n, l, m, 1.0f, A, m, B, m, 0.0f, X, n);
 
 	/* clean up */
 	free(ipiv);
 	free(C);
 }
 
+/**
+ * cluster_newton() - the cluster Newton method to solve inverse problems
+ * @m:      Dimension of the parameter space.
+ * @n:      Dimension of the result space.
+ * @f:      A function that maps vectors of size m to vectors of size n.
+ * @ys:     Target vector, of dimension n.
+ * @xh:     Center of the initial box. Vector of size m.
+ * @v:      Relative size of the initial box. Vector of size m.
+ * @l:      Number of candidates to generate.
+ * @eta:    Target accuracy.
+ * @K:      Number of iterations.
+ * @Xf:     Where to store the result. Matrix of size l by m.
+ * @r:      Where to store the residuals. Vector of size l. Can also be
+ *          set to NULL, if the user does not need to compute them.
+ */
 void cluster_newton(uint m, uint n, void (*f)(float *, float *), float *ys,
                     float *xh, float *v,
-                    uint l, float eta, uint K, float *res)
+                    uint l, float eta, uint K, float *Xf, float * r)
 {
 	/* safety checks */
 	assert(m > n);
@@ -240,7 +262,6 @@ void cluster_newton(uint m, uint n, void (*f)(float *, float *), float *ys,
 		/* 2.1 */ multi_eval(m, n, f, l, X, Y);
 
 		/* 2.2 */ pinv_ls(m + l, l, X, n, Y, A_Y0);
-		/* 2.2 */ //least_squares(m + l, l, X, n, Y, A_Y0);
 
 		/* 2.3 */
 		/* Y0 <-- Ys - AX - Y0 */
@@ -248,28 +269,35 @@ void cluster_newton(uint m, uint n, void (*f)(float *, float *), float *ys,
 			    n, l, m, -1.0f, A, n, X, m + l, -1.0f, Y0, n);
 		m_add(n, l, n, Y0, n, Ys);
 
-		//m_scale_cols(n, m, A, xh);
+		m_scale_cols(n, m, A, xh);
 		minimum_norm(n, m, A, l, Y0, S);
-		//m_scale_rows_inv(m, l, S, xh);
+		m_scale_rows_inv(m, l, S, xh);
 
 		/* 2.4 */
-		//for (uint j = 1; j <= l; j++) {
+		for (uint j = 1; j <= l; j++) {
 			/* FIXME */
-		//	while (
-//sqrt(pow(M_IDX(X, m, 1, j) + M_IDX(S, m, 1, j), 2)
-//   + pow(M_IDX(X, m, 2, j) + M_IDX(S, m, 2, j), 2)) >= 15) {
-//				for (uint i = 1; i <= m; i++) {
-//					M_IDX(S, m, i, j) /= 2.0f;
-//				}
-//			}
-//		}
+			while (0) {
+				for (uint i = 1; i <= m; i++) {
+					M_IDX(S, m, i, j) /= 2.0f;
+				}
+			}
+		}
 		m_add(m, l, m + l, X, m, S);
 	}
 
 	/* copy the result */
-	for (uint j = 1; j <= l; j++) {
-		for (uint i = 1; i <= m; i++) {
-			M_IDX(res, m, i, j) = M_IDX(X, m + l, i, j);
+	m_copy(m, l, m, Xf, m + l, X);
+
+	/* compute the residuals */
+	if (r) {
+		for (uint j = 1; j <= l; j++) {
+			V_IDX(r, j) = 0.0f;
+			for (uint i = 1; i <= n; i++) {
+				float rel = (M_IDX(Y, n, i, j) - V_IDX(ys, i))
+				            / V_IDX(ys, i);
+				V_IDX(r, j) += pow(fabs(rel), 2.0f);
+			}
+			V_IDX(r, j) = sqrt(V_IDX(r, j));
 		}
 	}
 

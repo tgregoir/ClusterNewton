@@ -18,6 +18,32 @@
 
 #include <math.h>
 
+void f_influenza_kinetics(float *in, float *out)
+{
+	float x1 = in[0], x2 = in[1], x3 = in[2];
+	float x4 = in[3], x5 = in[4], x6 = in[5];
+	float x7 = in[6];
+
+	uint Nsteps = 180;
+	float deltaT = 180.0f / Nsteps;
+
+	float *u1 = create_vector(Nsteps);
+	float *u2 = create_vector(Nsteps);
+	float *u3 = create_vector(Nsteps);
+	float *u4 = create_vector(Nsteps);
+
+	/* initial values */
+	V_IDX(u1, 1) = x5;
+	V_IDX(u2, 1) = 0.0f;
+	V_IDX(u3, 1) = 0.0f;
+	V_IDX(u4, 1) = x7;
+
+	free(u4);
+	free(u3);
+	free(u2);
+	free(u1);
+}
+
 void f(float *in, float *out)
 {
 	float x1 = V_IDX(in, 1);
@@ -28,7 +54,8 @@ void f(float *in, float *out)
 
 int main(void)
 {
-	srand(1429874166);
+	//srand(1429874166);
+	srand(time(NULL));
 
 	uint m = 2;
 	uint n = 1;
@@ -37,19 +64,17 @@ int main(void)
 	float xh[] = { 2.5, 2.5 };
 	float v[] = { 1., 1. };
 	float eta = 0.1;
-	uint K = 10;
+	uint K = 25;
 
-	float *res = create_matrix(m, l);
-	printf("m=%u, n=%u, l=%u\n", m, n, l);
-	cluster_newton(m, n, f, ys, xh, v, l, eta, K, res);
-	//print_matrix(m, l, res);
-	for (uint j = 1; j <= l; j++) {
-		float x = M_IDX(res, m, 1, j);
-		float y = M_IDX(res, m, 2, j);
-		printf("%f\n", sqrt(x * x + y * y));
-	}
+	float *X = create_matrix(m, l);
+	float *r = create_vector(l);
+	printf("m=%u, n=%u, l=%u, K=%u\n", m, n, l, K);
+	cluster_newton(m, n, f, ys, xh, v, l, eta, K, X, r);
 
-	free(res);
+	print_vector(l, r);
+
+	free(r);
+	free(X);
 
 	return 0;
 }

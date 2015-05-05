@@ -28,6 +28,6 @@ void normal_ls(uint, uint, float *, uint, float *, float *);
 void minimum_norm(uint, uint, float *, uint, float *, float *);
 
 void cluster_newton(uint, uint, void (*)(float *, float *), float *,
-                    float *, float *, uint, float, uint, float *);
+                    float *, float *, uint, float, uint, float *, float *);
 
 #endif /* CN_H */

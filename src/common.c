@@ -70,6 +70,26 @@ void print_matrix_(uint m, uint n, float *A, const char *str)
 }
 
 /**
+ * m_copy() - replaces a matrix with a copy of another one
+ * @m:         Row dimension.
+ * @l:         Column dimension.
+ * @ldA:       Leading dimension of matrix A.
+ * @A:         Target.
+ * @ldB:       Leading dimension of matrix B.
+ * @B:         Matrix to be added to A.
+ *
+ * Performs A <- B.
+ */
+void m_copy(uint m, uint n, uint ldA, float *A, uint ldB, float *B)
+{
+	for (uint j = 1; j <= n; j++) {
+		for (uint i = 1; i <= m; i++) {
+			M_IDX(A, ldA, i, j) = M_IDX(B, ldB, i, j);
+		}
+	}
+}
+
+/**
  * m_add() - add a matrix to another one
  * @m:         Row dimension.
  * @l:         Column dimension.
