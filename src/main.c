@@ -1,3 +1,19 @@
+/*
+ *    This file is part of CNewt.
+ *
+ *    CNewt is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    CNewt is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with CNewt.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #include "cn.h"
 
 #include <math.h>
@@ -16,12 +32,12 @@ int main(void)
 
 	uint m = 2;
 	uint n = 1;
-	uint l = 5;
+	uint l = 100;
 	float ys[] = { 100. };
 	float xh[] = { 2.5, 2.5 };
 	float v[] = { 1., 1. };
 	float eta = 0.1;
-	uint K = 20;
+	uint K = 10;
 
 	float *res = create_matrix(m, l);
 	printf("m=%u, n=%u, l=%u\n", m, n, l);
