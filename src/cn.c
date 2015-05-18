@@ -19,6 +19,7 @@
 #include "common.h"
 #include <cblas.h>
 #include <lapacke.h>
+#include <math.h>
 
 /**
  * random_pts_in_box - samples random points in a box
@@ -26,13 +27,13 @@
  * @l:      Number of points to sample.
  * @xh:     An m-dimensional vector.
  * @v:      An m-dimensional vector.
- * @X:      The (m + l)-by-l matrix where the result is written.
+ * @X:      The (m + 1)-by-l matrix where the result is written.
  *
  * Samples l points uniformly at random in the box
  *   { x : abs((x(i) - xh(i)) / (xh(i) * v(i))) < 1 }.
  * x has dimension m.
  *
- * An l-by-l identity matrix is used to pad X. See cluster_newton() for
+ * A 1-by-l block of ones is used to pad X. See cluster_newton() for
  * the rationale behind this decision.
  */
 void random_pts_in_box(uint m, uint l, float *xh, float *v, float *X)
@@ -40,13 +41,10 @@ void random_pts_in_box(uint m, uint l, float *xh, float *v, float *X)
 	for (uint j = 1; j <= l; j++) {
 		for (uint i = 1; i <= m; i++) {
 			float r = 2. * (float)rand() / (float)RAND_MAX - 1.;
-			M_IDX(X, m + l, i, j) = V_IDX(xh, i) *
+			M_IDX(X, m + 1, i, j) = V_IDX(xh, i) *
 			                        (1. + V_IDX(v, i) * r);
 		}
-
-		for (uint i = 1; i <= l; i++) {
-			M_IDX(X, m + l, m + i, j) = (i == j ? 1. : 0.);
-		}
+		M_IDX(X, m + 1, m + 1, j) = 1.;
 	}
 }
 
@@ -87,7 +85,7 @@ void multi_eval(uint m, uint n, void (*f)(float *, float *),
 		uint l, float *X, float *Y)
 {
 	for (uint j = 1; j <= l; j++) {
-		f(M_COL(X, m + l, j), M_COL(Y, n, j));
+		f(M_COL(X, m + 1, j), M_COL(Y, n, j));
 	}
 }
 
@@ -154,29 +152,33 @@ void pinv_ls(uint m, uint n, float *A, uint l, float *B, float *X)
 void normal_ls(uint m, uint n, float *A, uint l, float *B, float *X)
 {
 	float *C = create_matrix(m, m);
-	float *D = X;
+	float *D = create_matrix(m, l);
 
 	/*
 	 * Dimensions:
 	 *   - A is m by n.
 	 *   - B is l by n.
 	 *   - C is m by m.
-	 *   - D is l by m.
+	 *   - D is m by l.
 	 */
 
 	/* C = AA' */
 	cblas_ssyrk(CblasColMajor, CblasLower, CblasNoTrans,
 	            m, n, 1.0f, A, m, 0.0f, C, m);
-	/* D = BA' */
+	/* D = AB' */
 	cblas_sgemm(CblasColMajor, CblasNoTrans, CblasTrans,
-	            l, m, n, 1.0f, B, l, A, m, 0.0f, D, l);
-	/* solve XC=D for X
-	 * this overrides D, hence X */
+	            m, l, n, 1.0f, A, m, B, l, 0.0f, D, m);
+	/* solve CX=D for X
+	 * this overrides D */
 	int *ipiv = (int*)malloc(sizeof(int) * m);
 	assert(ipiv);
-	LAPACKE_ssysv(LAPACK_ROW_MAJOR, 'u', m, l, C, m, ipiv, D, m);
+	LAPACKE_ssysv(LAPACK_COL_MAJOR, 'l', m, l, C, m, ipiv, D, m);
+
+	/* transpose the result */
+	m_transpose(m, l, X, D);
 
 	free(ipiv);
+	free(D);
 	free(C);
 }
 
@@ -243,7 +245,7 @@ void cluster_newton(uint m, uint n, void (*f)(float *, float *), float *ys,
 	assert(n > 0);
 	assert(l > 0);
 
-	/* 1.1 */ float *X = create_matrix(m + l, l);
+	/* 1.1 */ float *X = create_matrix(m + 1, l);
 	random_pts_in_box(m, l, xh, v, X);
 
 	/* 1.2 */ float *Ys = create_matrix(n, l);
@@ -251,22 +253,25 @@ void cluster_newton(uint m, uint n, void (*f)(float *, float *), float *ys,
 
 	float *Y = create_matrix(n, l);
 
-	/* A and Y0 are stored in the same matrix
+	/* A and y0 are stored in the same matrix
 	 * handy when solving the overdetermined linear system in 2.2 */
-	float *A_Y0 = create_matrix(n, m + l);
-	float *A = A_Y0;
-	float *Y0 = M_COL(A_Y0, n, m + 1);
+	float *A_y0 = create_matrix(n, m + 1);
+	float *A = A_y0;
+	float *y0 = M_COL(A_y0, n, m + 1);
+	float *Y0 = create_matrix(n, l);
 	float *S = create_matrix(m, l);
 
 	for (uint k = 0; k <= K; k++) {
 		/* 2.1 */ multi_eval(m, n, f, l, X, Y);
 
-		/* 2.2 */ pinv_ls(m + l, l, X, n, Y, A_Y0);
+		/* 2.2 */ normal_ls(m + 1, l, X, n, Y, A_y0);
+		/* 2.2 */ //pinv_ls(l, m + 1, X, n, Y, A_y0);
+		m_replicate(n, y0, l, Y0);
 
 		/* 2.3 */
 		/* Y0 <-- Ys - AX - Y0 */
 		cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
-			    n, l, m, -1.0f, A, n, X, m + l, -1.0f, Y0, n);
+			    n, l, m, -1.0f, A, n, X, m + 1, -1.0f, Y0, n);
 		m_add(n, l, n, Y0, n, Ys);
 
 		m_scale_cols(n, m, A, xh);
@@ -282,11 +287,11 @@ void cluster_newton(uint m, uint n, void (*f)(float *, float *), float *ys,
 				}
 			}
 		}
-		m_add(m, l, m + l, X, m, S);
+		m_add(m, l, m + 1, X, m, S);
 	}
 
 	/* copy the result */
-	m_copy(m, l, m, Xf, m + l, X);
+	m_copy(m, l, m, Xf, m + 1, X);
 
 	/* compute the residuals */
 	if (r) {
@@ -303,7 +308,8 @@ void cluster_newton(uint m, uint n, void (*f)(float *, float *), float *ys,
 
 	/* cleaning up */
 	free(S);
-	free(A_Y0);
+	free(Y0);
+	free(A_y0);
 	free(Y);
 	free(Ys);
 	free(X);

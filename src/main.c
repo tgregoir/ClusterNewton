@@ -17,7 +17,9 @@
 #include "cn.h"
 
 #include <math.h>
+#include <unistd.h>
 
+/*
 void f_influenza_kinetics(float *in, float *out)
 {
 	float x1 = in[0], x2 = in[1], x3 = in[2];
@@ -32,7 +34,6 @@ void f_influenza_kinetics(float *in, float *out)
 	float *u3 = create_vector(Nsteps);
 	float *u4 = create_vector(Nsteps);
 
-	/* initial values */
 	V_IDX(u1, 1) = x5;
 	V_IDX(u2, 1) = 0.0f;
 	V_IDX(u3, 1) = 0.0f;
@@ -43,6 +44,7 @@ void f_influenza_kinetics(float *in, float *out)
 	free(u2);
 	free(u1);
 }
+*/
 
 void f(float *in, float *out)
 {
@@ -50,28 +52,35 @@ void f(float *in, float *out)
 	float x2 = V_IDX(in, 2);
 	V_IDX(out, 1) = (x1 * x1 + x2 * x2);
 	V_IDX(out, 1) += sin(10000. * x1) * sin(10000. * x2) / 100.;
+	//usleep(370000);
+	//V_IDX(out, 1) = x1 + x2;
 }
 
 int main(void)
 {
-	//srand(1429874166);
-	srand(time(NULL));
+	//srand(324635343);
+	srand(1429874166);
+	//srand(time(NULL));
 
 	uint m = 2;
 	uint n = 1;
-	uint l = 100;
-	float ys[] = { 100. };
-	float xh[] = { 2.5, 2.5 };
-	float v[] = { 1., 1. };
-	float eta = 0.1;
-	uint K = 25;
+	uint l = 10;
+	float ys[1] = { 100.0f };
+	float xh[2] = { 2.5f, 2.5f };
+	float v[2] = { 1.0f, 1.0f };
+	float eta = 0.10f;
+	uint K = 5;
 
 	float *X = create_matrix(m, l);
 	float *r = create_vector(l);
-	printf("m=%u, n=%u, l=%u, K=%u\n", m, n, l, K);
+	//printf("m=%u, n=%u, l=%u, K=%u\n", m, n, l, K);
 	cluster_newton(m, n, f, ys, xh, v, l, eta, K, X, r);
 
-	print_vector(l, r);
+	//print_vector(l, r);
+	print_matrix(m, l, X);
+	printf("plot(X(1,:),X(2,:), '.'), axis equal, xlim([-15 15]), ylim([-15 15])\n");
+	printf("t = linspace(0, 2*pi);\n");
+	printf("hold on, plot(10. * cos(t), 10. * sin(t))");
 
 	free(r);
 	free(X);

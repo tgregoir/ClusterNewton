@@ -52,7 +52,7 @@ void print_vector_(uint n, float *v, const char *str)
 	for (uint i = 1; i <= n; i++) {
 		printf("%f; ", V_IDX(v, i));
 	}
-	printf("]\n");
+	printf("];\n");
 }
 
 void print_matrix_(uint m, uint n, float *A, const char *str)
@@ -66,7 +66,7 @@ void print_matrix_(uint m, uint n, float *A, const char *str)
 			printf(";\n  ");
 		}
 	}
-	printf("]\n");
+	printf("];\n");
 }
 
 /**
@@ -142,6 +142,42 @@ void m_scale_rows_inv(uint m, uint n, float *A, float *sv)
 	for (uint j = 1; j <= n; j++) {
 		for (uint i = 1; i <= m; i++) {
 			M_IDX(A, m, i, j) /= V_IDX(sv, i);
+		}
+	}
+}
+
+/**
+ * m_replicate() - puts several copies of a column vector into a matrix
+ * @n:               Dimension of the vector/row dimension of the matrix.
+ * @v:               The vector.
+ * @m:               Column dimension of the matrix.
+ * @A:               Where to put the result.
+ *
+ * Puts m copies of v into A.
+ */
+void m_replicate(uint n, float *v, uint m, float *A)
+{
+	for (uint j = 1; j <= m; j++) {
+		for (uint i = 1; i <= n; i++) {
+			M_IDX(A, n, i, j) = V_IDX(v, i);
+		}
+	}
+}
+
+/**
+ * m_transpose() - matrix transposition
+ * @n:               Row dimension of B.
+ * @m:               Column dimension of B.
+ * @A:               Where to store the result (m-by-n).
+ * @B:               Input matrix (n-by-m).
+ *
+ * Sets A <- B'. This is a naive algorithm with poor cache performance.
+ */
+void m_transpose(uint n, uint m, float *A, float *B)
+{
+	for (uint j = 1; j <= m; j++) {
+		for (uint i = 1; i <= n; i++) {
+			M_IDX(A, m, j, i) = M_IDX(B, n, i, j);
 		}
 	}
 }
