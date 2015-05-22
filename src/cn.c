@@ -72,27 +72,9 @@ void perturbate(uint l, uint n, float *ys, float eta, float *Ys)
 }
 
 /**
- * multi_eval() - evaluates a function at multiple points
- * @m:              Number of parameters of the function.
- * @f:              The function to evaluate.
- * @l:              Number of points.
- * @X:              Coordinates of the points, one point per column.
- * @y:              Vector in which to store the result.
- *
- * This function assumes COLUMN-MAJOR ORDER.
- */
-void multi_eval(uint m, uint n, void (*f)(float *, float *),
-		uint l, float *X, float *Y)
-{
-	for (uint j = 1; j <= l; j++) {
-		f(M_COL(X, m + 1, j), M_COL(Y, n, j));
-	}
-}
-
-/**
  * pinv_ls() - solve an overdetermined linear system
  * @m:                 Row dimension of A.
- * @n:                 Column dimension of A, n <= m.
+ * @n:                 Column dimension of A.
  * @A:                 An m-by-n matrix.
  * @l:                 Column dimension of B.
  * @B:                 An l-by-n matrix.
@@ -103,7 +85,8 @@ void multi_eval(uint m, uint n, void (*f)(float *, float *),
  */
 void pinv_ls(uint m, uint n, float *A, uint l, float *B, float *X)
 {
-	assert (n <= m);
+	uint min = (m < n ? m : n);
+	uint max = (m < n ? n : m);
 
 	/* create a copy of A */
 	float *cA = create_matrix(m, n);
@@ -113,24 +96,24 @@ void pinv_ls(uint m, uint n, float *A, uint l, float *B, float *X)
 		}
 	}
 
-	float *invA = create_matrix(m, m);
+	float *invA = create_matrix(max, m);
 
 	/* set up an identity function */
-	for (uint i = 1; i <= m; i++) {
+	for (uint i = 1; i <= max; i++) {
 		for (uint j = 1; j <= m; j++) {
-			M_IDX(invA, m, i, j) = (i == j ? 1.0f : 0.0f);
+			M_IDX(invA, max, i, j) = (i == j ? 1.0f : 0.0f);
 		}
 	}
 
 	/* compute the pseudoinverse */
-	float *S = create_vector(m);
+	float *S = create_vector(min);
 	int rank;
-	LAPACKE_sgelss(LAPACK_COL_MAJOR, m, n, m, cA, m, invA, m, S,
+	LAPACKE_sgelss(LAPACK_COL_MAJOR, m, n, m, cA, m, invA, max, S,
 	               -1.0f, &rank);
 
 	/* multiply the RHS by the pseudoinverse */
 	cblas_sgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
-	            l, m, n, 1.0f, B, l, invA, m, 0.0f, X, l);
+	            l, m, n, 1.0f, B, l, invA, max, 0.0f, X, l);
 
 	free(S);
 	free(invA);
@@ -265,7 +248,7 @@ void cluster_newton(uint m, uint n, void (*f)(float *, float *), float *ys,
 		/* 2.1 */ multi_eval(m, n, f, l, X, Y);
 
 		/* 2.2 */ normal_ls(m + 1, l, X, n, Y, A_y0);
-		/* 2.2 */ //pinv_ls(l, m + 1, X, n, Y, A_y0);
+		/* 2.2 */ //pinv_ls(m + 1, l, X, n, Y, A_y0);
 		m_replicate(n, y0, l, Y0);
 
 		/* 2.3 */

@@ -68,19 +68,19 @@ int main(void)
 	float ys[1] = { 100.0f };
 	float xh[2] = { 2.5f, 2.5f };
 	float v[2] = { 1.0f, 1.0f };
-	float eta = 0.10f;
-	uint K = 5;
+	float eta = 0.01f;
+	uint K = 10;
 
 	float *X = create_matrix(m, l);
 	float *r = create_vector(l);
 	//printf("m=%u, n=%u, l=%u, K=%u\n", m, n, l, K);
 	cluster_newton(m, n, f, ys, xh, v, l, eta, K, X, r);
 
-	//print_vector(l, r);
-	print_matrix(m, l, X);
-	printf("plot(X(1,:),X(2,:), '.'), axis equal, xlim([-15 15]), ylim([-15 15])\n");
-	printf("t = linspace(0, 2*pi);\n");
-	printf("hold on, plot(10. * cos(t), 10. * sin(t))");
+	print_vector(l, r);
+	//print_matrix(m, l, X);
+	//printf("plot(X(1,:),X(2,:), '.'), axis equal, xlim([-15 15]), ylim([-15 15])\n");
+	//printf("t = linspace(0, 2*pi);\n");
+	//printf("hold on, plot(10. * cos(t), 10. * sin(t))\n");
 
 	free(r);
 	free(X);

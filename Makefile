@@ -11,6 +11,7 @@ LIBDIRS  :=
 
 # Compilation flags
 CFLAGS  := -g -std=c99 -Wall $(INCLUDE)
+NVFLAGS := -g $(INCLUDE)
 LDFLAGS := -g
 
 # Additional libraries
@@ -22,7 +23,8 @@ LIBS := -lm -lblas -llapacke
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 
 export CC := gcc
-export LD := $(CC)
+export NV := nvcc
+export LD := $(NV)
 
 export OUTPUT := $(CURDIR)/$(TARGET)
 
@@ -32,14 +34,15 @@ export VPATH := $(CURDIR)/$(subst /,,$(dir $(ICON))) \
 
 export DEPSDIR := $(CURDIR)/$(BUILD)
 
-CFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-export OFILES   := $(CFILES:.c=.o)
+CFILES  := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
+CUFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cu)))
+export OFILES   := $(CFILES:.c=.o) $(CUFILES:.cu=.o)
 
 TSTCFILES := $(foreach dir,$(TESTS),$(notdir $(wildcard $(dir)/*.c)))
 export OTSTFILES := $(TSTCFILES:.c=.o)
 export TSTOUTPUT := $(TSTCFILES:.c=.tst)
 
-export INCLUDE  := $(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir)) \
+export INCLUDE  := $(foreach dir,$(INCLUDES),-I $(CURDIR)/$(dir)) \
                    $(foreach dir,$(LIBDIRS),-I$(dir)/include) \
                    -I$(CURDIR)/$(BUILD)
 export LIBPATHS := $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
@@ -70,6 +73,10 @@ $(OUTPUT): $(OFILES)
 %.o: %.c
 	@echo [CC] $(notdir $<)
 	@$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d $(CFLAGS) -c $< -o $@
+
+%.o: %.cu
+	@echo [NV] $(notdir $<)
+	@$(NV) $(NVFLAGS) -c $< -o $@
 
 -include $(DEPSDIR)/*.d
 
