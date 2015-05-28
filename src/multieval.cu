@@ -80,6 +80,6 @@ void multi_eval_gpu(uint m, uint n, uint l, float *X, float *Y)
 extern "C" void multi_eval(uint m, uint n, void (*f)(float *, float *),
                            uint l, float *X, float *Y)
 {
-	//multi_eval_sequential(m, n, f, l, X, Y);
-	multi_eval_gpu(m, n, l, X, Y);
+	multi_eval_sequential(m, n, f, l, X, Y);
+	//multi_eval_gpu(m, n, l, X, Y);
 }

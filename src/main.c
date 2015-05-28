@@ -15,6 +15,7 @@
  *    along with CNewt.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "cn.h"
+#include "integrate.h"
 
 #include <math.h>
 #include <unistd.h>
@@ -56,8 +57,20 @@ void f(float *in, float *out)
 	//V_IDX(out, 1) = x1 + x2;
 }
 
+/* Y = y y'
+ * Y' = y' -y */
+void f_cos(float t, float *y, float *F)
+{
+	F[0] = y[1];
+	F[1] = -y[0];
+}
+
 int main(void)
 {
+	float y0[2] = { 1.0f, 0.0f };
+	rk4(1, 1, f_cos, 0.0f, y0, 3.14157f, 20);
+	printf("RK4: %f\n", y0[0]);
+
 	//srand(324635343);
 	srand(1429874166);
 	//srand(time(NULL));

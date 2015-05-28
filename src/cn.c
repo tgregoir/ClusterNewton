@@ -205,6 +205,24 @@ void minimum_norm(uint m, uint n, float *A, uint l, float *B, float *X)
 }
 
 /**
+ * multi_eval() - evaluates a function at multiple points
+ * @m:              Number of parameters of the function.
+ * @f:              The function to evaluate.
+ * @l:              Number of points.
+ * @X:              Coordinates of the points, one point per column.
+ * @y:              Vector in which to store the result.
+ *
+ * This function assumes COLUMN-MAJOR ORDER.
+ */
+void multi_eval(uint m, uint n, void (*f)(float *, float *),
+                uint l, float *X, float *Y)
+{
+	for (uint j = 1; j <= l; j++) {
+		f(M_COL(X, m + 1, j), M_COL(Y, n, j));
+	}
+}
+
+/**
  * cluster_newton() - the cluster Newton method to solve inverse problems
  * @m:      Dimension of the parameter space.
  * @n:      Dimension of the result space.
