@@ -20,33 +20,6 @@
 #include <math.h>
 #include <unistd.h>
 
-/*
-void f_influenza_kinetics(float *in, float *out)
-{
-	float x1 = in[0], x2 = in[1], x3 = in[2];
-	float x4 = in[3], x5 = in[4], x6 = in[5];
-	float x7 = in[6];
-
-	uint Nsteps = 180;
-	float deltaT = 180.0f / Nsteps;
-
-	float *u1 = create_vector(Nsteps);
-	float *u2 = create_vector(Nsteps);
-	float *u3 = create_vector(Nsteps);
-	float *u4 = create_vector(Nsteps);
-
-	V_IDX(u1, 1) = x5;
-	V_IDX(u2, 1) = 0.0f;
-	V_IDX(u3, 1) = 0.0f;
-	V_IDX(u4, 1) = x7;
-
-	free(u4);
-	free(u3);
-	free(u2);
-	free(u1);
-}
-*/
-
 void f(float *in, float *out)
 {
 	float x1 = V_IDX(in, 1);
@@ -54,24 +27,10 @@ void f(float *in, float *out)
 	V_IDX(out, 1) = (x1 * x1 + x2 * x2);
 	V_IDX(out, 1) += sin(10000. * x1) * sin(10000. * x2) / 100.;
 	//usleep(370000);
-	//V_IDX(out, 1) = x1 + x2;
-}
-
-/* Y = y y'
- * Y' = y' -y */
-void f_cos(float t, float *y, float *F)
-{
-	F[0] = y[1];
-	F[1] = -y[0];
 }
 
 int main(void)
 {
-	float y0[2] = { 1.0f, 0.0f };
-	rk4(1, 1, f_cos, 0.0f, y0, 3.14157f, 20);
-	printf("RK4: %f\n", y0[0]);
-
-	//srand(324635343);
 	srand(1429874166);
 	//srand(time(NULL));
 
