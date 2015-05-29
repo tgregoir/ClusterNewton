@@ -18,6 +18,7 @@
 #include "cn.h"
 #include "integrate.h"
 
+/* For the sake of clarity, we'll ignore x[0]. */
 static float x[8];
 
 /** F_influenza() - Forward problem for Influenza Kinetics model
@@ -54,7 +55,11 @@ const float target[22] = {
 	1.0f,  2.10f, 1.12f, 0.79f, 0.17f, 0.19f
 };
 
-const uint N[22] = { 20 };
+const uint N[22] = {
+	20, 20, 20, 20, 20, 20, 20, 20,
+	20, 20, 20, 20, 20, 20, 20, 20,
+	20, 20, 20, 20, 20, 20
+};
 
 void fwd_influenza(float *X, float *Y)
 {
@@ -64,13 +69,21 @@ void fwd_influenza(float *X, float *Y)
 	}
 
 	/* for each possible final time, simulate the system */
+	float u[4];
 	for (uint i = 1; i <= 22; i++) {
-		float u[4] = { x[5], 0.0f, 0.0f, x[7] };
-		rk4(4, 4, F_influenza, 0.0f, u, V_IDX(tf, i), V_IDX(N, i));
+		V_IDX(u, 1) = x[5];
+		V_IDX(u, 2) = 0.0f;
+		V_IDX(u, 3) = 0.0f;
+		V_IDX(u, 4) = x[7];
+		rk4(4, F_influenza, 0.0f, u, V_IDX(tf, i), V_IDX(N, i));
 		V_IDX(Y, i) = V_IDX(u, 4);
 	}
 }
 
 void influenza(void)
 {
+	float X[7] = { 0.3f, 1.2f, 0.7f, 3.3f, 0.4f, 0.7f, 1.1f };
+	float Y[22] = { 0.0f };
+	fwd_influenza(X, Y);
+	print_vector(22, Y);
 }

@@ -29,8 +29,12 @@ void f(float *in, float *out)
 	//usleep(370000);
 }
 
+extern void influenza();
+
 int main(void)
 {
+	influenza();
+
 	srand(1429874166);
 	//srand(time(NULL));
 
