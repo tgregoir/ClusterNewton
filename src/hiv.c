@@ -75,9 +75,13 @@ void fwd_HIV(float *X, float *Y)
 		V_IDX(u, 2) = x[11];
 		V_IDX(u, 3) = x[12];
 		V_IDX(u, 4) = x[13];
+
 		rk4(4, F_HIV, 0.0f, u, V_IDX(tf, i), V_IDX(N, i));
-		/* FIXME: is u4 the quantity of interest here? */
-		V_IDX(Y, i) = V_IDX(u, 4);
+
+		M_IDX(Y, 4, 1, i) = V_IDX(u, 1);
+		M_IDX(Y, 4, 2, i) = V_IDX(u, 2);
+		M_IDX(Y, 4, 3, i) = V_IDX(u, 3);
+		M_IDX(Y, 4, 4, i) = V_IDX(u, 4);
 	}
 }
 
@@ -87,7 +91,7 @@ void hiv(void)
 		0.3f, 1.2f, 0.7f, 3.3f, 0.4f, 0.7f, 1.1f,
 		0.5f, 3.3f, 0.2f, 1.4f, 0.1f, 3.7f
 	};
-	float Y[5] = { 0.0f };
+	float Y[5 * 4] = { 0.0f };
 	fwd_HIV(X, Y);
 	print_vector(5, Y);
 }
