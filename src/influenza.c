@@ -42,20 +42,21 @@ static void F_influenza(float t, float *u, float *d)
 }
 
 /* Times at which experimental data have been gathered. */
-const float tf[22] = {
+static const float tf[22] = {
 	4.5f,   12.0f,  20.0f,  27.0f,  35.0f,  43.0f,  51.0f,  58.0f,
 	66.0f,  73.0f,  81.0f,  89.0f,  96.0f,  105.0f, 112.0f, 120.0f,
 	127.0f, 135.0f, 143.0f, 151.0f, 159.0f, 166.0f
 };
 
 /* Experimental data */
-const float target[22] = {
+static const float target[22] = {
 	1.21f, 1.40f, 2.83f, 4.13f, 4.42f, 5.04f, 4.62f, 4.44f,
 	5.13f, 4.33f, 4.02f, 3.13f, 2.90f, 3.0f,  3.02f, 3.12f,
 	1.0f,  2.10f, 1.12f, 0.79f, 0.17f, 0.19f
 };
 
-const uint N[22] = {
+/* Number of steps in the RK4 scheme */
+static const uint N[22] = {
 	20, 20, 20, 20, 20, 20, 20, 20,
 	20, 20, 20, 20, 20, 20, 20, 20,
 	20, 20, 20, 20, 20, 20
