@@ -23,16 +23,15 @@
 /**
  * rk4() - Fourth-order Runge-Kutta method
  * @n:         A positive integer.
- * @m:         A positive integer.
- * @f:         f : R x R^n -> R^m.
+ * @f:         f : R x R^n -> R^n.
  * @t0:        Initial time.
- * @y:         Vector of size m. Input: y(t0). Output: y(t1).
+ * @y:         Vector of size n. Input: y(t0). Output: y(t1).
  * @t1:        Final time.
  * @N:         Number of steps.
  *
  * Computes y(t1), where y' = f(t,y) and y(t0) = y0.
  */
-void rk4(uint, uint, void (*)(float, float *, float *), float, float *,
+void rk4(uint, void (*)(float, float *, float *), float, float *,
          float, uint);
 
 #endif /* INTEGRATE_H */

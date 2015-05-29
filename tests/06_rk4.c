@@ -29,10 +29,10 @@ void f_cos(float t, float *y, float *F)
 int main(void)
 {
 	float y0[2] = { 1.0f, 0.0f };
-	rk4(1, 1, f_cos, 0.0f, y0, 3.14157f, 20);
+	rk4(2, f_cos, 0.0f, y0, 3.14157f, 20);
 	printf("RK4: %f, %f\n", y0[0], y0[1]);
 
-	assert(fabs(y0[0] - 1.0f) < 0.01f);
+	assert(fabs(y0[0] + 1.0f) < 0.01f);
 	assert(fabs(y0[1]) < 0.01f);
 	return 0;
 }
