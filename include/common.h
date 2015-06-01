@@ -86,6 +86,7 @@ void print_matrix_(uint, uint, float *, const char *);
 
 void m_copy(uint, uint, uint, float *, uint, float *);
 void m_add(uint, uint, uint, float *, uint, float *);
+void m_sub(uint, uint, uint, float *, uint, float *);
 void m_scale(uint, uint, uint, float *, float);
 void m_scale_cols(uint, uint, float *, float *);
 void m_scale_rows_inv(uint, uint, float *, float *);

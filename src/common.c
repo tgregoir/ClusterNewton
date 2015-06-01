@@ -112,6 +112,26 @@ void m_add(uint m, uint l, uint ldA, float *A, uint ldB, float *B)
 }
 
 /**
+ * m_add() - subtracts a matrix from another one
+ * @m:         Row dimension.
+ * @l:         Column dimension.
+ * @ldA:       Leading dimension of matrix A.
+ * @A:         Target.
+ * @ldB:       Leading dimension of matrix B.
+ * @B:         Matrix to be subtracted to A.
+ *
+ * Performs A <- A - B.
+ */
+void m_sub(uint m, uint l, uint ldA, float *A, uint ldB, float *B)
+{
+	for (uint j = 1; j <= l; j++) {
+		for (uint i = 1; i <= m; i++) {
+			M_IDX(A, ldA, i, j) -= M_IDX(B, ldB, i, j);
+		}
+	}
+}
+
+/**
  * m_scale() - mutliplies a matrix by a constant
  * @m:               Row dimension of A.
  * @n:               Column dimension of A.

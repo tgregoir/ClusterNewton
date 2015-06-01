@@ -113,8 +113,6 @@ void bdf1(uint n, void (*f)(float, float *, float *),
 	float t = t0;
 
 	for (uint i = 1; i <= N; i++) {
-		/* we're going to solve y_{i+1} = y_i + hf(t_{i+1}, y_{i+1})
-		 * for y_{i+1} */
 		t += h;
 
 		/* F(t,x) = x - y - hf(t,x)
@@ -122,11 +120,11 @@ void bdf1(uint n, void (*f)(float, float *, float *),
 		 *
 		 * Newton iteration:
 		 *   x0 = y
-		 *   x_{i+1} = x_i + J(t,x_i)^(-1)F(t,x_i)
+		 *   x_{i+1} = x_i - inv(J(t,x_i))F(t,x_i)
 		 */
 
 		/* x <- y */
-		m_copy(n, 1, n, y, n, x);
+		m_copy(n, 1, n, x, n, y);
 
 		do {
 			/* D = 1 - hJ(t,x) */
@@ -136,8 +134,8 @@ void bdf1(uint n, void (*f)(float, float *, float *),
 				M_IDX(D, n, i, i) += 1.0f;
 			}
 
-			/* z = x - y - hf(t,y) */
-			f(t, y, z);
+			/* z = x - y - hf(t,x) */
+			f(t, x, z);
 			for (uint i = 1; i <= n; i++) {
 				V_IDX(z, i) = V_IDX(x, i) - V_IDX(y, i)
 				              - h * V_IDX(z, i);
@@ -147,12 +145,12 @@ void bdf1(uint n, void (*f)(float, float *, float *),
 			LAPACKE_sgesv(LAPACK_COL_MAJOR, n, 1, D, n, ipiv,
 			              z, n);
 
-			/* x += z */
-			m_add(n, 1, n, z, n, x);
+			/* x -= z */
+			m_sub(n, 1, n, x, n, z);
 		} while (v_norm(n, z) > tol);
 
 		/* y <- x */
-		m_copy(n, 1, n, x, n, y);
+		m_copy(n, 1, n, y, n, x);
 	}
 
 	free(D);
