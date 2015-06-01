@@ -17,6 +17,10 @@
 #ifndef TSTTOOLS_H
 #define TSTTOOLS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "common.h"
 #include <time.h>
 
@@ -65,5 +69,9 @@ static inline float *random_matrix(uint n, uint m)
 	}
 	return M;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* TSTTOOLS_H */

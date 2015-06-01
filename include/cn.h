@@ -17,6 +17,10 @@
 #ifndef CN_H
 #define CN_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "common.h"
 
 void random_pts_in_box(uint, uint, float *, float *, float *);
@@ -29,5 +33,9 @@ void minimum_norm(uint, uint, float *, uint, float *, float *);
 
 void cluster_newton(uint, uint, void (*)(float *, float *), float *,
                     float *, float *, uint, float, uint, float *, float *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* CN_H */

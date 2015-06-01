@@ -18,6 +18,10 @@
 #ifndef INTEGRATE_H
 #define INTEGRATE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "common.h"
 
 /**
@@ -33,5 +37,9 @@
  */
 void rk4(uint, void (*)(float, float *, float *), float, float *,
          float, uint);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* INTEGRATE_H */

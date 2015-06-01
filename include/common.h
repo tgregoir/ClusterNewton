@@ -17,6 +17,10 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -86,5 +90,9 @@ void m_scale_cols(uint, uint, float *, float *);
 void m_scale_rows_inv(uint, uint, float *, float *);
 void m_replicate(uint, float *, uint, float *);
 void m_transpose(uint, uint, float *, float *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* COMMON_H */
