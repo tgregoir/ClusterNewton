@@ -16,6 +16,8 @@
  */
 #include "common.h"
 
+#include <lapacke.h>
+
 /**
  * create_vector() - memory allocation for vectors
  * @n:        Dimension.
@@ -110,6 +112,24 @@ void m_add(uint m, uint l, uint ldA, float *A, uint ldB, float *B)
 }
 
 /**
+ * m_scale() - mutliplies a matrix by a constant
+ * @m:               Row dimension of A.
+ * @n:               Column dimension of A.
+ * @ldA:             Leading dimension of A.
+ * @k:               Constant.
+ *
+ * Sets A <- kA.
+ */
+void m_scale(uint m, uint n, uint ldA, float *A, float k)
+{
+	for (uint j = 1; j <= n; j++) {
+		for (uint i = 1; i <= m; i++) {
+			M_IDX(A, ldA, i, j) *= k;
+		}
+	}
+}
+
+/**
  * m_scale_cols() - right multiplication with a diagonal matrix
  * @m:                Row dimension of the matrix A.
  * @n:                Column dimension of the matrix A.
@@ -180,4 +200,16 @@ void m_transpose(uint n, uint m, float *A, float *B)
 			M_IDX(A, m, j, i) = M_IDX(B, n, i, j);
 		}
 	}
+}
+
+/**
+ * v_norm() - 2-norm of a vector
+ * @n:          Row dimension of v.
+ * @v:          Input vector.
+ *
+ * Returns ||v||_2.
+ */
+float v_norm(uint n, float *v)
+{
+	return LAPACKE_slange(LAPACK_COL_MAJOR, 'F', n, 1, v, n);
 }

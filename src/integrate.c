@@ -16,6 +16,19 @@
  */
 #include "common.h"
 
+#include <lapacke.h>
+
+/**
+ * rk4() - Fourth-order Runge-Kutta method
+ * @n:         A positive integer.
+ * @f:         f : R x R^n -> R^n.
+ * @t0:        Initial time.
+ * @y:         Vector of size n. Input: y(t0). Output: y(t1).
+ * @t1:        Final time.
+ * @N:         Number of steps.
+ *
+ * Computes y(t1), where y' = f(t,y) and y(t0) = y0.
+ */
 void rk4(uint n, void (*f)(float, float *, float *),
          float t0, float *y, float t1, uint N)
 {
@@ -68,4 +81,81 @@ void rk4(uint n, void (*f)(float, float *, float *),
 	free(k3);
 	free(k2);
 	free(k1);
+}
+
+/**
+ * bdf1() - Backwards Euler method
+ * @n:          Dimension of the problem.
+ * @f:          f : R x R^n -> R^n.
+ * @df:         The Jacobian of f.
+ * @t0:         Initial time.
+ * @y:          Vector of size n. Input: y(t0). Output: y(t1).
+ * @t1:         Final time.
+ * @N:          Number of steps.
+ * @tol:        Tolerance internally used in Newton's method.
+ *
+ * Computes y(t1), where y' = f(t,y) and y(t0) = y0.
+ */
+void bdf1(uint n, void (*f)(float, float *, float *),
+	  void (*df)(float, float *, float *),
+          float t0, float *y, float t1, uint N, float tol)
+{
+	assert(t0 < t1);
+
+	/* allocate memory */
+	float *x = create_vector(n);
+	float *z = create_vector(n);
+	float *D = create_matrix(n, n);
+	int *ipiv = (int*)malloc(sizeof(int) * n);
+	assert(ipiv);
+
+	float h = (t1 - t0) / (float)N;
+	float t = t0;
+
+	for (uint i = 1; i <= N; i++) {
+		/* we're going to solve y_{i+1} = y_i + hf(t_{i+1}, y_{i+1})
+		 * for y_{i+1} */
+		t += h;
+
+		/* F(t,x) = x - y - hf(t,x)
+		 * J(t,x) = 1 - hDf(t,x)
+		 *
+		 * Newton iteration:
+		 *   x0 = y
+		 *   x_{i+1} = x_i + J(t,x_i)^(-1)F(t,x_i)
+		 */
+
+		/* x <- y */
+		m_copy(n, 1, n, y, n, x);
+
+		do {
+			/* D = 1 - hJ(t,x) */
+			df(t, x, D);
+			m_scale(n, n, n, D, -h);
+			for (uint i = 1; i <= n; i++) {
+				M_IDX(D, n, i, i) += 1.0f;
+			}
+
+			/* z = x - y - hf(t,y) */
+			f(t, y, z);
+			for (uint i = 1; i <= n; i++) {
+				V_IDX(z, i) = V_IDX(x, i) - V_IDX(y, i)
+				              - h * V_IDX(z, i);
+			}
+
+			/* Replace z with D^(-1)z */
+			LAPACKE_sgesv(LAPACK_COL_MAJOR, n, 1, D, n, ipiv,
+			              z, n);
+
+			/* x += z */
+			m_add(n, 1, n, z, n, x);
+		} while (v_norm(n, z) > tol);
+
+		/* y <- x */
+		m_copy(n, 1, n, x, n, y);
+	}
+
+	free(D);
+	free(z);
+	free(x);
 }

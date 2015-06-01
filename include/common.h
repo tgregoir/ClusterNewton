@@ -86,10 +86,12 @@ void print_matrix_(uint, uint, float *, const char *);
 
 void m_copy(uint, uint, uint, float *, uint, float *);
 void m_add(uint, uint, uint, float *, uint, float *);
+void m_scale(uint, uint, uint, float *, float);
 void m_scale_cols(uint, uint, float *, float *);
 void m_scale_rows_inv(uint, uint, float *, float *);
 void m_replicate(uint, float *, uint, float *);
 void m_transpose(uint, uint, float *, float *);
+float v_norm(uint, float *);
 
 #ifdef __cplusplus
 }
