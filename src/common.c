@@ -52,7 +52,7 @@ void print_vector_(uint n, float *v, const char *str)
 {
 	printf("%s = [ ", str);
 	for (uint i = 1; i <= n; i++) {
-		printf("%f; ", V_IDX(v, i));
+		printf("%e; ", V_IDX(v, i));
 	}
 	printf("];\n");
 }
@@ -62,7 +62,7 @@ void print_matrix_(uint m, uint n, float *A, const char *str)
 	printf("%s = ...\n [ ", str);
 	for (uint i = 1; i <= m; i++) {
 		for (uint j = 1; j <= n; j++) {
-			printf("%f ", M_IDX(A, m, i, j));
+			printf("%e ", M_IDX(A, m, i, j));
 		}
 		if (i < m) {
 			printf(";\n  ");
