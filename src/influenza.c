@@ -22,13 +22,14 @@
 static float x[8];
 
 /** F_influenza() - Forward problem for Influenza Kinetics model
+ * @t:                Time (unused here).
  * @u:                Vector of size 4.
  * @d:                Output, vector of size 4.
  *
  * The Influenza Kinetics model (Baccam et al.) is given by the differential
  * system: u' = F_influenza(t, u).
  */
-static void F_influenza(float t, float *u, float *d)
+void F_influenza(float t, float *u, float *d)
 {
 	float u1 = V_IDX(u, 1);
 	float u2 = V_IDX(u, 2);
@@ -39,6 +40,37 @@ static void F_influenza(float t, float *u, float *d)
 	V_IDX(d, 2) = x[1] * u1 * u4 - u2 / x[2];
 	V_IDX(d, 3) = u2 / x[2] - u3 / x[3];
 	V_IDX(d, 4) = x[4] * u3 / x[5] - x[6] * u4;
+}
+
+/** dF_influenza() - Jacobian of F_influenza()
+ * @t:                Time (unused here).
+ * @u:                Vector of size 4.
+ * @J:                Output, 4-by-4 matrix.
+ */
+void dF_influenza(float t, float *u, float *J)
+{
+	float u1 = V_IDX(u, 1);
+	float u4 = V_IDX(u, 4);
+
+	M_IDX(J, 4, 1, 1) = -x[1] * u4;
+	M_IDX(J, 4, 2, 1) = x[1] * u4;
+	M_IDX(J, 4, 3, 1) = 0.0f;
+	M_IDX(J, 4, 4, 1) = 0.0f;
+
+	M_IDX(J, 4, 1, 2) = 0.0f;
+	M_IDX(J, 4, 2, 2) = -1.0f / x[2];
+	M_IDX(J, 4, 3, 2) = 1.0f / x[2];
+	M_IDX(J, 4, 4, 2) = 0.0f;
+
+	M_IDX(J, 4, 1, 3) = 0.0f;
+	M_IDX(J, 4, 2, 3) = 0.0f;
+	M_IDX(J, 4, 3, 3) = -1.0f / x[3];
+	M_IDX(J, 4, 4, 3) = x[4] / x[5];
+
+	M_IDX(J, 4, 1, 4) = -x[1] * u1;
+	M_IDX(J, 4, 2, 4) = x[1] * u1;
+	M_IDX(J, 4, 3, 4) = 0.0f;
+	M_IDX(J, 4, 4, 4) = -x[6];
 }
 
 /* Times at which experimental data have been gathered. */
@@ -57,9 +89,9 @@ static const float target[22] = {
 
 /* Number of steps in the RK4 scheme */
 static const uint N[22] = {
-	20, 20, 20, 20, 20, 20, 20, 20,
-	20, 20, 20, 20, 20, 20, 20, 20,
-	20, 20, 20, 20, 20, 20
+	200, 200, 200, 200, 200, 200, 200, 200,
+	200, 200, 200, 200, 200, 200, 200, 200,
+	200, 200, 200, 200, 200, 200
 };
 
 void fwd_influenza(float *X, float *Y)
@@ -76,7 +108,9 @@ void fwd_influenza(float *X, float *Y)
 		V_IDX(u, 2) = 0.0f;
 		V_IDX(u, 3) = 0.0f;
 		V_IDX(u, 4) = x[7];
-		rk4(4, F_influenza, 0.0f, u, V_IDX(tf, i), V_IDX(N, i));
+		//rk4(4, F_influenza, 0.0f, u, V_IDX(tf, i), V_IDX(N, i));
+		bdf1(4, F_influenza, dF_influenza,
+		     0.0f, u, V_IDX(tf, i), V_IDX(N, i), 0.001);
 		V_IDX(Y, i) = V_IDX(u, 4);
 	}
 }
